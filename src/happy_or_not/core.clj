@@ -11,7 +11,11 @@
 
 (def folders (memoize get-folders))
 
-(def interesting-surveys
+;; Interesting folders are those that actually have surveys
+;; attached to them, which aren't that many actually.
+;; The most interesting of those are long-running surveys,
+;; where we can expect there to be a decent amount of data.
+(def interesting-folders
   (->> (folders)
        (select
         [:folders
