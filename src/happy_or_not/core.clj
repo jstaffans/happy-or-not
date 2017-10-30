@@ -1,7 +1,8 @@
 (ns happy-or-not.core
   (:require [cheshire.core :as json]
             [clj-http.client :as http]
-            [com.rpl.specter :refer :all]))
+            [com.rpl.specter :refer :all]
+            [happy-or-not.util :refer :all]))
 
 (defn get-folders []
   (-> "http://front1.hel.ninja/happy-or-not/folders?surveys=true"
@@ -29,3 +30,13 @@
          ((eachnav collect-one) :key :activePeriods)
          :question
          :name])))
+
+(defn get-survey-results
+  [key]
+  (-> "http://front1.hel.ninja/happy-or-not/surveys/%d/rawresults"
+      (format key)
+      (http/get {:accept :json})
+      :body
+      (json/parse-string true)))
+
+(def survey-results (memoize get-survey-results))
