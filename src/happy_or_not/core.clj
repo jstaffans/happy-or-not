@@ -32,9 +32,6 @@
     :name]
    folders))
 
-(extract-interesting (folders))
-
-
 (defn get-ratings
   [key]
   (-> "http://front1.hel.ninja/happy-or-not/surveys/%d/rawresults"
