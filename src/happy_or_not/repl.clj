@@ -46,21 +46,65 @@
 ;; <=
 
 ;; **
-;;; ## Number of ratings per hour
+;;; ## Ratings per hour of day
 ;;; 
-;;; Basic sanity check: customers should only be leaving ratings during business hours.
+;; **
+
+;; **
+;;; Define "happy" to be a rating of 3-4 on a 1-4 scale. Calculate happy ratio for each hour of the day.
 ;; **
 
 ;; @@
-(->> social-services-ratings
-     ratings-by-hour
-     (map (fn [ratings] (count ratings)))
-     (bar-chart (range 24)))
+(defn is-happy? 
+  [rating]
+  (>= rating 3))
+
+(defn hour-stats
+  "Basic statistics about ratings given during a certain hour."
+  [hour-ratings]
+  (let [n (count hour-ratings)]
+    (when (> n 0)
+      {:n           n
+       :happy-ratio (/ (->> hour-ratings (filter is-happy?) count) n)})))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;happy-or-not.repl/hour-stats</span>","value":"#'happy-or-not.repl/hour-stats"}
+;; <=
+
+;; @@
+(def stats (->> social-services-ratings
+                ratings-by-hour
+                (map hour-stats)
+                (drop 8)))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;happy-or-not.repl/stats</span>","value":"#'happy-or-not.repl/stats"}
+;; <=
+
+;; @@
+(->> stats
+     (map :n)
+     (bar-chart (range 8 16)))
 
 ;; @@
 ;; =>
-;;; {"type":"vega","content":{"width":400,"height":247.2188,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"8f644aec-d850-42a2-8248-57513dfb1017","values":[{"x":0,"y":0},{"x":1,"y":0},{"x":2,"y":0},{"x":3,"y":0},{"x":4,"y":0},{"x":5,"y":0},{"x":6,"y":0},{"x":7,"y":0},{"x":8,"y":26},{"x":9,"y":39},{"x":10,"y":122},{"x":11,"y":125},{"x":12,"y":156},{"x":13,"y":247},{"x":14,"y":160},{"x":15,"y":126},{"x":16,"y":0},{"x":17,"y":0},{"x":18,"y":0},{"x":19,"y":0},{"x":20,"y":0},{"x":21,"y":0},{"x":22,"y":0},{"x":23,"y":0}]}],"marks":[{"type":"rect","from":{"data":"8f644aec-d850-42a2-8248-57513dfb1017"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"width":{"scale":"x","band":true,"offset":-1},"y":{"scale":"y","field":"data.y"},"y2":{"scale":"y","value":0}},"update":{"fill":{"value":"steelblue"},"opacity":{"value":1}},"hover":{"fill":{"value":"#FF29D2"}}}}],"scales":[{"name":"x","type":"ordinal","range":"width","domain":{"data":"8f644aec-d850-42a2-8248-57513dfb1017","field":"data.x"}},{"name":"y","range":"height","nice":true,"domain":{"data":"8f644aec-d850-42a2-8248-57513dfb1017","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"8f644aec-d850-42a2-8248-57513dfb1017\", :values ({:x 0, :y 0} {:x 1, :y 0} {:x 2, :y 0} {:x 3, :y 0} {:x 4, :y 0} {:x 5, :y 0} {:x 6, :y 0} {:x 7, :y 0} {:x 8, :y 26} {:x 9, :y 39} {:x 10, :y 122} {:x 11, :y 125} {:x 12, :y 156} {:x 13, :y 247} {:x 14, :y 160} {:x 15, :y 126} {:x 16, :y 0} {:x 17, :y 0} {:x 18, :y 0} {:x 19, :y 0} {:x 20, :y 0} {:x 21, :y 0} {:x 22, :y 0} {:x 23, :y 0})}], :marks [{:type \"rect\", :from {:data \"8f644aec-d850-42a2-8248-57513dfb1017\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :width {:scale \"x\", :band true, :offset -1}, :y {:scale \"y\", :field \"data.y\"}, :y2 {:scale \"y\", :value 0}}, :update {:fill {:value \"steelblue\"}, :opacity {:value 1}}, :hover {:fill {:value \"#FF29D2\"}}}}], :scales [{:name \"x\", :type \"ordinal\", :range \"width\", :domain {:data \"8f644aec-d850-42a2-8248-57513dfb1017\", :field \"data.x\"}} {:name \"y\", :range \"height\", :nice true, :domain {:data \"8f644aec-d850-42a2-8248-57513dfb1017\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
+;;; {"type":"vega","content":{"width":400,"height":247.2188,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"1d78686a-18b5-407a-9fdf-8455c0165fd8","values":[{"x":8,"y":26},{"x":9,"y":39},{"x":10,"y":122},{"x":11,"y":125},{"x":12,"y":156},{"x":13,"y":247},{"x":14,"y":160},{"x":15,"y":126}]}],"marks":[{"type":"rect","from":{"data":"1d78686a-18b5-407a-9fdf-8455c0165fd8"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"width":{"scale":"x","band":true,"offset":-1},"y":{"scale":"y","field":"data.y"},"y2":{"scale":"y","value":0}},"update":{"fill":{"value":"steelblue"},"opacity":{"value":1}},"hover":{"fill":{"value":"#FF29D2"}}}}],"scales":[{"name":"x","type":"ordinal","range":"width","domain":{"data":"1d78686a-18b5-407a-9fdf-8455c0165fd8","field":"data.x"}},{"name":"y","range":"height","nice":true,"domain":{"data":"1d78686a-18b5-407a-9fdf-8455c0165fd8","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"1d78686a-18b5-407a-9fdf-8455c0165fd8\", :values ({:x 8, :y 26} {:x 9, :y 39} {:x 10, :y 122} {:x 11, :y 125} {:x 12, :y 156} {:x 13, :y 247} {:x 14, :y 160} {:x 15, :y 126})}], :marks [{:type \"rect\", :from {:data \"1d78686a-18b5-407a-9fdf-8455c0165fd8\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :width {:scale \"x\", :band true, :offset -1}, :y {:scale \"y\", :field \"data.y\"}, :y2 {:scale \"y\", :value 0}}, :update {:fill {:value \"steelblue\"}, :opacity {:value 1}}, :hover {:fill {:value \"#FF29D2\"}}}}], :scales [{:name \"x\", :type \"ordinal\", :range \"width\", :domain {:data \"1d78686a-18b5-407a-9fdf-8455c0165fd8\", :field \"data.x\"}} {:name \"y\", :range \"height\", :nice true, :domain {:data \"1d78686a-18b5-407a-9fdf-8455c0165fd8\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
 ;; <=
+
+;; @@
+(->> stats
+     (map :happy-ratio)
+     (bar-chart (range 8 16)))
+
+;; @@
+;; =>
+;;; {"type":"vega","content":{"width":400,"height":247.2188,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6","values":[{"x":8,"y":0.8461538461538461},{"x":9,"y":0.7948717948717949},{"x":10,"y":0.7704918032786885},{"x":11,"y":0.736},{"x":12,"y":0.7948717948717949},{"x":13,"y":0.7854251012145749},{"x":14,"y":0.84375},{"x":15,"y":0.888888888888889}]}],"marks":[{"type":"rect","from":{"data":"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"width":{"scale":"x","band":true,"offset":-1},"y":{"scale":"y","field":"data.y"},"y2":{"scale":"y","value":0}},"update":{"fill":{"value":"steelblue"},"opacity":{"value":1}},"hover":{"fill":{"value":"#FF29D2"}}}}],"scales":[{"name":"x","type":"ordinal","range":"width","domain":{"data":"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6","field":"data.x"}},{"name":"y","range":"height","nice":true,"domain":{"data":"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6\", :values ({:x 8, :y 11/13} {:x 9, :y 31/39} {:x 10, :y 47/61} {:x 11, :y 92/125} {:x 12, :y 31/39} {:x 13, :y 194/247} {:x 14, :y 27/32} {:x 15, :y 8/9})}], :marks [{:type \"rect\", :from {:data \"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :width {:scale \"x\", :band true, :offset -1}, :y {:scale \"y\", :field \"data.y\"}, :y2 {:scale \"y\", :value 0}}, :update {:fill {:value \"steelblue\"}, :opacity {:value 1}}, :hover {:fill {:value \"#FF29D2\"}}}}], :scales [{:name \"x\", :type \"ordinal\", :range \"width\", :domain {:data \"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6\", :field \"data.x\"}} {:name \"y\", :range \"height\", :nice true, :domain {:data \"8a5c7c30-6119-4b3d-81a2-8dcc1dea58c6\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
+;; <=
+
+;; **
+;;; H0 (null hypothesis): the hour of day should make no difference for rating.
+;;; TODO: calculate P values for each hour to see if any difference is significant.
+;; **
 
 ;; @@
 
