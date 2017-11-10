@@ -7,5 +7,6 @@
                  [kixi/gorilla-repl "0.4.1"]
                  [clj-http "3.7.0"]
                  [cheshire "5.8.0"]
-                 [com.rpl/specter "1.0.4"]]
+                 [com.rpl/specter "1.0.4"]
+                 [org.apache.commons/commons-math3 "3.6.1"]]
   :profiles {:uberjar {:aot :all}})
