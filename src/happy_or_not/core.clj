@@ -4,7 +4,9 @@
             [com.rpl.specter :refer :all]
             [happy-or-not.util :refer :all]))
 
-(defn get-folders []
+(defn get-folders
+  "Get customer satisfaction data from a Helsinki Region Infoshare API."
+  []
   (-> "http://front1.hel.ninja/happy-or-not/folders?surveys=true"
       (http/get {:accept :json})
       :body
@@ -12,11 +14,9 @@
 
 (def folders (memoize get-folders))
 
-;; Interesting folders are those that actually have surveys
-;; attached to them, which aren't that many actually.
-;; The most interesting of those are long-running surveys,
-;; where we can expect there to be a decent amount of data.
 (defn extract-interesting
+  "Go through raw data looking for folders that actually have
+   surveys attached to them."
   [folders]
   (select
    [:folders
@@ -33,6 +33,7 @@
    folders))
 
 (defn get-ratings
+  "Get survey results for a given survey key from the API."
   [key]
   (-> "http://front1.hel.ninja/happy-or-not/surveys/%d/rawresults"
       (format key)
@@ -43,6 +44,7 @@
 (def ratings (memoize get-ratings))
 
 (defn ratings-by-hour
+  "Group ratings by the hour of the day. The result is a vector with 24 elements."
   [ratings]
   (let [results (into [] (repeat 24 []))]
     (->> ratings
