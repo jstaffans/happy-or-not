@@ -3,7 +3,7 @@
 ;; **
 ;;; # Happy or not
 ;;; 
-;;; An exploration of customer satisfaction data available through the Helsinki Region Infoshare open data platform.
+;;; An exploration of customer satisfaction data available through the Helsinki Region Infoshare open data platform. The source of the data are four-button terminals that are placed near the exit of an agency, bureau hospital or similar with a sign saying "Please rate our service today". The terminal buttons are labeled with smileys, ranging from sad to happy, corresponding to ratings from 0 to 3.
 ;; **
 
 ;; @@
@@ -38,7 +38,9 @@
 ;; <=
 
 ;; **
-;;; OK, so the "Nuorten sosiaalityö" is the only one that's really interesting, since it has long-enough timespan. For those who don't speak Finnish, this seems to be a youth social services bureau. We can now employ another function, `ratings`, to retrieve the actual ratings from the API.
+;;; OK, so the "Nuorten sosiaalityö" is in fact the only interesting one! It also has a sufficiently long timespan to give us a meaningful amount of data. For those who don't speak Finnish, "tyytyväisyytesi nuorten sosiaalityön palveluun tänään?" translates to "how happy are with the services of the youth service bureau today?". 
+;;; 
+;;; We can now employ another function, `happy-or-not.core/ratings`, to retrieve the actual ratings from the API.
 ;; **
 
 ;; @@
@@ -80,12 +82,16 @@
 ;; <=
 
 ;; **
+;;; So we seem to have a list of timestamp and rating pairs. Perfect!
+;; **
+
+;; **
 ;;; ## Ratings per hour of day
 ;;; 
 ;; **
 
 ;; **
-;;; Define "happy" to be a rating of 2-3 on a 0-3 scale. Calculate happy ratio, ie the "mean happiness", for each hour of the working day, which is 8 am and 4 pm for this particular agency.
+;;; To make the statistics simpler, we define "happy" to be a rating of 2-3 on a 0-3 scale. Calculate happy ratio, ie the "mean happiness", for each hour of the working day, which seems to be 8 am and 4 pm for this particular agency.
 ;; **
 
 ;; @@
@@ -118,14 +124,24 @@
                 (map group-stats)
                 ;; only data for 8-16 (working hours)
                 (drop 8)   
-                (take 8)))
+                (take 8)
+                (into [])))
 
-(def population-mean (/ (->> stats
-                             (map :happy-n)
-                             (reduce +))
-                        (->> stats
-                             (map :n)
-                             (reduce +))))
+(defn population-count
+  "Sums the value for the key k over groups."
+  [groups k]
+  (->> groups
+       (map k)
+       (reduce +)))
+
+(defn population-mean 
+  "Calculate the proportion of happy customers over several groups."
+  [groups]
+  (/ (population-count groups :happy-n) 
+     (population-count groups :n)))
+
+
+
 ;; @@
 ;; =>
 ;;; {"type":"html","content":"<span class='clj-var'>#&#x27;happy-or-not.repl/population-mean</span>","value":"#'happy-or-not.repl/population-mean"}
@@ -141,7 +157,7 @@
 
 ;; @@
 ;; =>
-;;; {"type":"vega","content":{"width":400,"height":247.2188,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"28a68678-47fd-4fbf-9de3-89eded252763","values":[{"x":8,"y":26},{"x":9,"y":41},{"x":10,"y":125},{"x":11,"y":130},{"x":12,"y":157},{"x":13,"y":253},{"x":14,"y":162},{"x":15,"y":128}]}],"marks":[{"type":"rect","from":{"data":"28a68678-47fd-4fbf-9de3-89eded252763"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"width":{"scale":"x","band":true,"offset":-1},"y":{"scale":"y","field":"data.y"},"y2":{"scale":"y","value":0}},"update":{"fill":{"value":"steelblue"},"opacity":{"value":1}},"hover":{"fill":{"value":"#FF29D2"}}}}],"scales":[{"name":"x","type":"ordinal","range":"width","domain":{"data":"28a68678-47fd-4fbf-9de3-89eded252763","field":"data.x"}},{"name":"y","range":"height","nice":true,"domain":{"data":"28a68678-47fd-4fbf-9de3-89eded252763","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"28a68678-47fd-4fbf-9de3-89eded252763\", :values ({:x 8, :y 26} {:x 9, :y 41} {:x 10, :y 125} {:x 11, :y 130} {:x 12, :y 157} {:x 13, :y 253} {:x 14, :y 162} {:x 15, :y 128})}], :marks [{:type \"rect\", :from {:data \"28a68678-47fd-4fbf-9de3-89eded252763\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :width {:scale \"x\", :band true, :offset -1}, :y {:scale \"y\", :field \"data.y\"}, :y2 {:scale \"y\", :value 0}}, :update {:fill {:value \"steelblue\"}, :opacity {:value 1}}, :hover {:fill {:value \"#FF29D2\"}}}}], :scales [{:name \"x\", :type \"ordinal\", :range \"width\", :domain {:data \"28a68678-47fd-4fbf-9de3-89eded252763\", :field \"data.x\"}} {:name \"y\", :range \"height\", :nice true, :domain {:data \"28a68678-47fd-4fbf-9de3-89eded252763\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
+;;; {"type":"vega","content":{"width":400,"height":247.2188,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"903f038b-c1eb-4b2a-8f3d-93f7d5024621","values":[{"x":8,"y":26},{"x":9,"y":41},{"x":10,"y":125},{"x":11,"y":130},{"x":12,"y":157},{"x":13,"y":253},{"x":14,"y":162},{"x":15,"y":128}]}],"marks":[{"type":"rect","from":{"data":"903f038b-c1eb-4b2a-8f3d-93f7d5024621"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"width":{"scale":"x","band":true,"offset":-1},"y":{"scale":"y","field":"data.y"},"y2":{"scale":"y","value":0}},"update":{"fill":{"value":"steelblue"},"opacity":{"value":1}},"hover":{"fill":{"value":"#FF29D2"}}}}],"scales":[{"name":"x","type":"ordinal","range":"width","domain":{"data":"903f038b-c1eb-4b2a-8f3d-93f7d5024621","field":"data.x"}},{"name":"y","range":"height","nice":true,"domain":{"data":"903f038b-c1eb-4b2a-8f3d-93f7d5024621","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"903f038b-c1eb-4b2a-8f3d-93f7d5024621\", :values ({:x 8, :y 26} {:x 9, :y 41} {:x 10, :y 125} {:x 11, :y 130} {:x 12, :y 157} {:x 13, :y 253} {:x 14, :y 162} {:x 15, :y 128})}], :marks [{:type \"rect\", :from {:data \"903f038b-c1eb-4b2a-8f3d-93f7d5024621\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :width {:scale \"x\", :band true, :offset -1}, :y {:scale \"y\", :field \"data.y\"}, :y2 {:scale \"y\", :value 0}}, :update {:fill {:value \"steelblue\"}, :opacity {:value 1}}, :hover {:fill {:value \"#FF29D2\"}}}}], :scales [{:name \"x\", :type \"ordinal\", :range \"width\", :domain {:data \"903f038b-c1eb-4b2a-8f3d-93f7d5024621\", :field \"data.x\"}} {:name \"y\", :range \"height\", :nice true, :domain {:data \"903f038b-c1eb-4b2a-8f3d-93f7d5024621\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
 ;; <=
 
 ;; @@
@@ -150,7 +166,7 @@
 
 ;; @@
 ;; =>
-;;; {"type":"vega","content":{"width":400,"height":247.2188,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f","values":[{"x":8,"y":0.96153843},{"x":9,"y":0.85365856},{"x":10,"y":0.872},{"x":11,"y":0.8384615},{"x":12,"y":0.9235669},{"x":13,"y":0.88142294},{"x":14,"y":0.9382716},{"x":15,"y":0.9453125}]}],"marks":[{"type":"rect","from":{"data":"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"width":{"scale":"x","band":true,"offset":-1},"y":{"scale":"y","field":"data.y"},"y2":{"scale":"y","value":0}},"update":{"fill":{"value":"steelblue"},"opacity":{"value":1}},"hover":{"fill":{"value":"#FF29D2"}}}}],"scales":[{"name":"x","type":"ordinal","range":"width","domain":{"data":"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f","field":"data.x"}},{"name":"y","range":"height","nice":true,"domain":{"data":"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f\", :values ({:x 8, :y 0.96153843} {:x 9, :y 0.85365856} {:x 10, :y 0.872} {:x 11, :y 0.8384615} {:x 12, :y 0.9235669} {:x 13, :y 0.88142294} {:x 14, :y 0.9382716} {:x 15, :y 0.9453125})}], :marks [{:type \"rect\", :from {:data \"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :width {:scale \"x\", :band true, :offset -1}, :y {:scale \"y\", :field \"data.y\"}, :y2 {:scale \"y\", :value 0}}, :update {:fill {:value \"steelblue\"}, :opacity {:value 1}}, :hover {:fill {:value \"#FF29D2\"}}}}], :scales [{:name \"x\", :type \"ordinal\", :range \"width\", :domain {:data \"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f\", :field \"data.x\"}} {:name \"y\", :range \"height\", :nice true, :domain {:data \"2f8ceacd-d5ab-4e10-82af-3c8cbaeaac2f\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
+;;; {"type":"vega","content":{"width":400,"height":247.2188,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"48aca391-4217-449d-97cf-5a48253136ca","values":[{"x":8,"y":0.96153843},{"x":9,"y":0.85365856},{"x":10,"y":0.872},{"x":11,"y":0.8384615},{"x":12,"y":0.9235669},{"x":13,"y":0.88142294},{"x":14,"y":0.9382716},{"x":15,"y":0.9453125}]}],"marks":[{"type":"rect","from":{"data":"48aca391-4217-449d-97cf-5a48253136ca"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"width":{"scale":"x","band":true,"offset":-1},"y":{"scale":"y","field":"data.y"},"y2":{"scale":"y","value":0}},"update":{"fill":{"value":"steelblue"},"opacity":{"value":1}},"hover":{"fill":{"value":"#FF29D2"}}}}],"scales":[{"name":"x","type":"ordinal","range":"width","domain":{"data":"48aca391-4217-449d-97cf-5a48253136ca","field":"data.x"}},{"name":"y","range":"height","nice":true,"domain":{"data":"48aca391-4217-449d-97cf-5a48253136ca","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"48aca391-4217-449d-97cf-5a48253136ca\", :values ({:x 8, :y 0.96153843} {:x 9, :y 0.85365856} {:x 10, :y 0.872} {:x 11, :y 0.8384615} {:x 12, :y 0.9235669} {:x 13, :y 0.88142294} {:x 14, :y 0.9382716} {:x 15, :y 0.9453125})}], :marks [{:type \"rect\", :from {:data \"48aca391-4217-449d-97cf-5a48253136ca\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :width {:scale \"x\", :band true, :offset -1}, :y {:scale \"y\", :field \"data.y\"}, :y2 {:scale \"y\", :value 0}}, :update {:fill {:value \"steelblue\"}, :opacity {:value 1}}, :hover {:fill {:value \"#FF29D2\"}}}}], :scales [{:name \"x\", :type \"ordinal\", :range \"width\", :domain {:data \"48aca391-4217-449d-97cf-5a48253136ca\", :field \"data.x\"}} {:name \"y\", :range \"height\", :nice true, :domain {:data \"48aca391-4217-449d-97cf-5a48253136ca\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
 ;; <=
 
 ;; **
@@ -171,7 +187,7 @@
 
 ;; @@
 (let [expected (->> stats
-                    (map (fn [{:keys [n]}] (double (* population-mean n)))))
+                    (map (fn [{:keys [n]}] (double (* (population-mean stats) n)))))
       observed (->> stats (map :happy-n))]
   (str (format "P-value: %.4f" (- 1 (chi-square-test expected observed)))))
 ;; @@
@@ -181,32 +197,65 @@
 
 ;; **
 ;;; The interpretation of a P-value of 0.0219 is that there is only about a 2.19% chance that the differences between the groups arose by chance. Since this is less than our threshold P-value of 0.05, we can reject the null hypothesis and say that there **is** a statistically significant difference between the customer ratings depending on the hour of the day.
+;;; 
+;;; Let's explore each group further and compare it to the rest of the ratings. We will for example compare the customer ratings from 8 to 9 am to the customer ratings from 9 am to 4 pm. Technically, this is a [Z-statistic for the differences in proportions between two populations](http://www.itl.nist.gov/div898/handbook/prc/section3/prc33.htm): one population is the ratings for one given hour of the day and the other population is the ratings for all other hours.
 ;; **
 
 ;; @@
-(defn standard-error 
-  "Approximate standard error: sqrt(p̂*(1-p̂)/n).
-   https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval"
-  [n sample-mean]
-  (Math/sqrt (* sample-mean (/ (- 1 sample-mean) n))))
-
-(defn t-statistic
-  [{:keys [n happy-ratio]}]
-  (/ (- happy-ratio population-mean) (standard-error n happy-ratio)))
-
+(defn z-statistic 
+  [groups sub-group-index]
+  (let [p-hat (population-mean groups)
+        p1-groups (concat (subvec groups 0 sub-group-index) (subvec groups (inc sub-group-index)))
+        p1-hat (population-mean p1-groups)
+        p2-group (subvec groups sub-group-index (inc sub-group-index))
+        p2-hat (population-mean p2-group)
+        pq (* p-hat (- 1 p-hat))
+        n1 (population-count p1-groups :n)
+        n2 (population-count p2-group :n)]
+    (/ (- p1-hat p2-hat) 
+       (Math/sqrt 
+         (+ (/ pq n1) (/ pq n2))))))
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;happy-or-not.repl/t-statistic</span>","value":"#'happy-or-not.repl/t-statistic"}
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;happy-or-not.repl/z-statistic</span>","value":"#'happy-or-not.repl/z-statistic"}
 ;; <=
 
 ;; @@
-(as-> stats s
-      (map (juxt :n :happy-ratio t-statistic) s)
-      (table-view s :columns [:n :mean :t-statistic]))
+(-> (map-indexed 
+      (fn [i group] 
+        (let [hour (+ i 8)]
+          [hour (:n group) (:happy-ratio group) (z-statistic stats i)]))
+      stats)
+    (table-view :columns [:hour :n :mean :z-statistic]))
 ;; @@
 ;; =>
-;;; {"type":"list-like","open":"<center><table>","close":"</table></center>","separator":"\n","items":[{"type":"list-like","open":"<tr><th>","close":"</th></tr>","separator":"</th><th>","items":[{"type":"html","content":"<span class='clj-keyword'>:n</span>","value":":n"},{"type":"html","content":"<span class='clj-keyword'>:mean</span>","value":":mean"},{"type":"html","content":"<span class='clj-keyword'>:t-statistic</span>","value":":t-statistic"}],"value":"[:n :mean :t-statistic]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>26</span>","value":"26"},{"type":"html","content":"<span class='clj-unkown'>0.96153843</span>","value":"0.96153843"},{"type":"html","content":"<span class='clj-double'>1.6524402520869022</span>","value":"1.6524402520869022"}],"value":"[26 0.96153843 1.6524402520869022]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>41</span>","value":"41"},{"type":"html","content":"<span class='clj-unkown'>0.85365856</span>","value":"0.85365856"},{"type":"html","content":"<span class='clj-double'>-0.825348078606929</span>","value":"-0.825348078606929"}],"value":"[41 0.85365856 -0.825348078606929]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>125</span>","value":"125"},{"type":"html","content":"<span class='clj-unkown'>0.872</span>","value":"0.872"},{"type":"html","content":"<span class='clj-double'>-0.9108269358448551</span>","value":"-0.9108269358448551"}],"value":"[125 0.872 -0.9108269358448551]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>130</span>","value":"130"},{"type":"html","content":"<span class='clj-unkown'>0.8384615</span>","value":"0.8384615"},{"type":"html","content":"<span class='clj-double'>-1.882258034231413</span>","value":"-1.882258034231413"}],"value":"[130 0.8384615 -1.882258034231413]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>157</span>","value":"157"},{"type":"html","content":"<span class='clj-unkown'>0.9235669</span>","value":"0.9235669"},{"type":"html","content":"<span class='clj-double'>1.1483326000714302</span>","value":"1.1483326000714302"}],"value":"[157 0.9235669 1.1483326000714302]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>253</span>","value":"253"},{"type":"html","content":"<span class='clj-unkown'>0.88142294</span>","value":"0.88142294"},{"type":"html","content":"<span class='clj-double'>-0.8754841037546861</span>","value":"-0.8754841037546861"}],"value":"[253 0.88142294 -0.8754841037546861]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>162</span>","value":"162"},{"type":"html","content":"<span class='clj-unkown'>0.9382716</span>","value":"0.9382716"},{"type":"html","content":"<span class='clj-double'>2.0654761717962806</span>","value":"2.0654761717962806"}],"value":"[162 0.9382716 2.0654761717962806]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-unkown'>128</span>","value":"128"},{"type":"html","content":"<span class='clj-unkown'>0.9453125</span>","value":"0.9453125"},{"type":"html","content":"<span class='clj-double'>2.2936634602126538</span>","value":"2.2936634602126538"}],"value":"[128 0.9453125 2.2936634602126538]"}],"value":"#gorilla_repl.table.TableView{:contents ([26 0.96153843 1.6524402520869022] [41 0.85365856 -0.825348078606929] [125 0.872 -0.9108269358448551] [130 0.8384615 -1.882258034231413] [157 0.9235669 1.1483326000714302] [253 0.88142294 -0.8754841037546861] [162 0.9382716 2.0654761717962806] [128 0.9453125 2.2936634602126538]), :opts (:columns [:n :mean :t-statistic])}"}
+;;; {"type":"list-like","open":"<center><table>","close":"</table></center>","separator":"\n","items":[{"type":"list-like","open":"<tr><th>","close":"</th></tr>","separator":"</th><th>","items":[{"type":"html","content":"<span class='clj-keyword'>:hour</span>","value":":hour"},{"type":"html","content":"<span class='clj-keyword'>:n</span>","value":":n"},{"type":"html","content":"<span class='clj-keyword'>:mean</span>","value":":mean"},{"type":"html","content":"<span class='clj-keyword'>:z-statistic</span>","value":":z-statistic"}],"value":"[:hour :n :mean :z-statistic]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>8</span>","value":"8"},{"type":"html","content":"<span class='clj-unkown'>26</span>","value":"26"},{"type":"html","content":"<span class='clj-unkown'>0.96153843</span>","value":"0.96153843"},{"type":"html","content":"<span class='clj-double'>-1.0692840017351786</span>","value":"-1.0692840017351786"}],"value":"[8 26 0.96153843 -1.0692840017351786]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>9</span>","value":"9"},{"type":"html","content":"<span class='clj-unkown'>41</span>","value":"41"},{"type":"html","content":"<span class='clj-unkown'>0.85365856</span>","value":"0.85365856"},{"type":"html","content":"<span class='clj-double'>0.9890735230538121</span>","value":"0.9890735230538121"}],"value":"[9 41 0.85365856 0.9890735230538121]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>10</span>","value":"10"},{"type":"html","content":"<span class='clj-unkown'>125</span>","value":"125"},{"type":"html","content":"<span class='clj-unkown'>0.872</span>","value":"0.872"},{"type":"html","content":"<span class='clj-double'>1.0789530387775506</span>","value":"1.0789530387775506"}],"value":"[10 125 0.872 1.0789530387775506]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>11</span>","value":"11"},{"type":"html","content":"<span class='clj-unkown'>130</span>","value":"130"},{"type":"html","content":"<span class='clj-unkown'>0.8384615</span>","value":"0.8384615"},{"type":"html","content":"<span class='clj-double'>2.463066456248311</span>","value":"2.463066456248311"}],"value":"[11 130 0.8384615 2.463066456248311]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>12</span>","value":"12"},{"type":"html","content":"<span class='clj-unkown'>157</span>","value":"157"},{"type":"html","content":"<span class='clj-unkown'>0.9235669</span>","value":"0.9235669"},{"type":"html","content":"<span class='clj-double'>-1.1016271003232707</span>","value":"-1.1016271003232707"}],"value":"[12 157 0.9235669 -1.1016271003232707]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>13</span>","value":"13"},{"type":"html","content":"<span class='clj-unkown'>253</span>","value":"253"},{"type":"html","content":"<span class='clj-unkown'>0.88142294</span>","value":"0.88142294"},{"type":"html","content":"<span class='clj-double'>1.083871714143472</span>","value":"1.083871714143472"}],"value":"[13 253 0.88142294 1.083871714143472]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>14</span>","value":"14"},{"type":"html","content":"<span class='clj-unkown'>162</span>","value":"162"},{"type":"html","content":"<span class='clj-unkown'>0.9382716</span>","value":"0.9382716"},{"type":"html","content":"<span class='clj-double'>-1.8000229703649824</span>","value":"-1.8000229703649824"}],"value":"[14 162 0.9382716 -1.8000229703649824]"},{"type":"list-like","open":"<tr><td>","close":"</td></tr>","separator":"</td><td>","items":[{"type":"html","content":"<span class='clj-long'>15</span>","value":"15"},{"type":"html","content":"<span class='clj-unkown'>128</span>","value":"128"},{"type":"html","content":"<span class='clj-unkown'>0.9453125</span>","value":"0.9453125"},{"type":"html","content":"<span class='clj-double'>-1.8522203345074677</span>","value":"-1.8522203345074677"}],"value":"[15 128 0.9453125 -1.8522203345074677]"}],"value":"#gorilla_repl.table.TableView{:contents ([8 26 0.96153843 -1.0692840017351786] [9 41 0.85365856 0.9890735230538121] [10 125 0.872 1.0789530387775506] [11 130 0.8384615 2.463066456248311] [12 157 0.9235669 -1.1016271003232707] [13 253 0.88142294 1.083871714143472] [14 162 0.9382716 -1.8000229703649824] [15 128 0.9453125 -1.8522203345074677]), :opts (:columns [:hour :n :mean :z-statistic])}"}
 ;; <=
+
+;; **
+;;; Continuing to use P=0.05, we need to look for Z-statistics that are [greater than 1.96](https://en.wikipedia.org/wiki/1.96) (or less than -1,96). There is only one group where this is true, namely in the customer responses from 11 am to 12 pm. 
+;;; 
+;;; ## Conclusion
+;;; 
+;;; We have extracted a meaningful piece of information from the customer ratings, namely that customers are at their unhappiest right before lunch. Maybe employees are tired by then and not providing the best support they can?
+;; **
+
+;; **
+;;; ## References
+;;; 
+;;; When I started out writing this post, I had only a basic grasp of statistics and hypothesis testing. I now know a lot more and am eager to continue learning about statistics, which I feel is an often overlooked but very important aspect of software development. Statistics is the underpinning of A/B-testing, defect rate tracking, performance monitoring, service level agreements and much more.
+;;; 
+;;; These resources were the ones that I found most helpful:
+;;; 
+;;; * [Khan Academy: Hypothesis Testing and P-values](https://www.khanacademy.org/math/statistics-probability/significance-tests-one-sample/tests-about-population-mean/v/hypothesis-testing-and-p-values)
+;;; * [Types of Data: Nominal, Ordinal, Interval/Ratio - Statistics Help](https://www.youtube.com/watch?v=hZxnzfnt5v8)
+;;; * [Choosing Which Statistical Test to Use - Statistics Help](https://www.youtube.com/watch?v=rulIUAN0U3w)
+;;; * [Chi Square Test - Explained](https://www.youtube.com/watch?v=1Ldl5Zfcm1Y)
+;;; * [Degrees of Freedom in a Chi Square Test](https://www.youtube.com/watch?v=JU9ZJlhw1-Y)
+;;; * [Statistics in a Nutshell, 2nd edition, Ch. 5 (Categorical Data)](http://shop.oreilly.com/product/0636920023074.do)
+;;; 
+;;; Many thanks to [Robin Gower](http://www.infonomics.ltd.uk/) for reviewing this post!
+;; **
 
 ;; @@
 
