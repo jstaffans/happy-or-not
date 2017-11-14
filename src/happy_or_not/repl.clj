@@ -3,7 +3,7 @@
 ;; **
 ;;; # Happy or not
 ;;; 
-;;; An exploration of customer satisfaction data available through the Helsinki Region Infoshare open data platform. The source of the data are four-button terminals that are placed near the exit of an agency, bureau hospital or similar with a sign saying "Please rate our service today". The terminal buttons are labeled with smileys, ranging from sad to happy, corresponding to ratings from 0 to 3.
+;;; An exploration of customer satisfaction data available through the Helsinki Region Infoshare open data platform. The source of the data are four-button terminals that are placed near the exit of an agency, bureau, hospital, or similar. The terminal buttons are labeled with smileys, ranging from sad to happy, corresponding to ratings from 0 to 3.
 ;; **
 
 ;; @@
@@ -20,7 +20,7 @@
 ;; **
 ;;; ## Find interesting data
 ;;; 
-;;; The data set contains entities such as hospitals, day care centers and social services bureaus. Not all of them seem to 
+;;; The data set contains entities such as hospitals, day care centers, and social services bureaus. Not all of them seem to 
 ;;; be collecting customer satisfaction ratings, so we need to find those that do.
 ;;; 
 ;;; Since this a bit more involved, the data retrieval and transformation happens in the `happy-or-not.core` namespace. I think this is a pretty common pattern for using Gorilla REPL: do the heavy lifting behind the scenes in a Clojure namespace and save the Gorilla REPL session for data exploration.
